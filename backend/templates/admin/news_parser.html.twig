@@ -1,0 +1,46 @@
+{% extends '@EasyAdmin/layout.html.twig' %}
+
+{% block content %}
+    <div class="content">
+        {% block flash_messages %}
+            {% for flashMessage in app.flashes('success') %}
+                <div class="alert alert-success">
+                    {{ flashMessage }}
+                </div>
+            {% endfor %}
+        {% endblock %}
+
+            <div id='alert' class="alert alert-info" style="display: none">
+                Парсинг в процессе...
+            </div>
+
+
+        <div style="margin-top: 20px;"></div>
+
+        <form id="parse_form" method="post">
+            <div class="form-group">
+                <label for="site">News Site:</label>
+                <select id="site" name="site">
+                    {% for newsSite in newsSites %}
+                        <option value="{{ newsSite.name }}">{{ newsSite.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="news_count">Parameter 3:</label>
+                <select id="news_count" name="news_count">
+                    {% for number in 1..15 %}
+                        <option value="{{ number }}" {% if number == 15 %}selected{% endif %}>{{ number }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit">Parse News</button>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('parse_form').addEventListener('submit', function() {
+            document.getElementById('alert').style.display = 'block';
+        });
+    </script>
+{% endblock %}

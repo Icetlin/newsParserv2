@@ -1,0 +1,70 @@
+FROM php:8.2-fpm
+
+# Установка зависимостей
+RUN apt-get update && apt-get install -y \
+    zlib1g-dev \
+    libzip-dev \
+    libicu-dev \
+    g++ \
+    unzip \
+    git \
+    curl
+
+# Установка PHP расширений
+RUN docker-php-ext-install zip intl pdo_mysql opcache
+
+# Установка Xdebug
+RUN pecl install xdebug && docker-php-ext-enable xdebug
+
+# Установка Composer
+COPY --from=composer /usr/bin/composer /usr/bin/composer
+
+# Установка Symfony Flex
+RUN composer require symfony/flex
+
+# Установка Symfony Console (для symfony-cmd)
+RUN composer require symfony/console
+
+# Установка рабочего каталога
+WORKDIR /var/www/html/backend
+
+# Копирование приложения
+COPY ./backend /var/www/html/backend
+
+# Установка зависимостей Composer
+RUN composer install
+
+# Активация Symfony Maker Bundle
+RUN composer require symfony/maker-bundle --dev
+RUN composer config extra.symfony.allow-contrib true
+
+# Активация Doctrine ORM для Symfony
+RUN composer require symfony/orm-pack
+
+# Установка компонентов безопасности Symfony
+RUN composer require symfony/security-http
+RUN composer require symfony/security-csrf
+
+# Установка API Platform
+RUN composer require api-platform/core
+
+# Установка Twig
+RUN composer require "twig/twig:^3.0"
+
+# Очистка кеша
+RUN php bin/console cache:clear
+
+# Установка PHP расширений
+RUN apt-get update \
+    && apt-get install -y libpq-dev \
+    && docker-php-ext-configure pgsql -with-pgsql=/usr/local/pgsql \
+    && docker-php-ext-install pdo_pgsql
+
+# Установка Node.js
+RUN apt-get install -y gnupg wget
+RUN wget https://deb.nodesource.com/setup_18.x -O /tmp/setup.sh
+RUN bash /tmp/setup.sh
+RUN apt-get install -y nodejs
+
+# Установка Yarn
+RUN npm install --global yarn
